@@ -1,15 +1,18 @@
 "use strict";
 
 let $ = require('jquery'),
-    db = require("./db-interaction"),
-    templates = require("./dom-builder");
+    db = require('./db-interaction'),
+    templates = require('./dom-builder'),
+    user = require('./user.js');
     // login = require("./user");
 
 
 // Using the REST API
-function loadSongsToDOM() {
+let loadSongsToDOM = (myUser) => {
   console.log("Need to load some songs, Buddy");
-  db.getSongs()
+  let currentUser = user.getUser();
+  debugger;
+  db.getSongs(currentUser)
     .then( function(songData){
       if (songData === null) {
         console.log("You need more songs!!");
@@ -24,8 +27,9 @@ function loadSongsToDOM() {
         templates.makeSongList(songData);
       }
     });
-}
-loadSongsToDOM(); //<--Move to auth section after adding login btn
+};
+
+// loadSongsToDOM(); //<--Move to auth section after adding login btn
 
 // Send newSong data to db then reload DOM with updated song data
 $(document).on("click", ".save_new_btn", function() {
@@ -64,23 +68,51 @@ $(document).on("click", ".delete-btn", function () {
   console.log("clicked the delete song btn: ", $(this).data("delete-id"));
   let songId = $(this).data("delete-id");
   db.deleteSong(songId)
-    .then( 
-      () => {loadSongsToDOM();}
-    );
+    .then(() => {loadSongsToDOM();});
+});
+
+$('#view-songs').click(() => {
+  $('#.uiContainer--wrapper').html("");
+  loadSongsToDOM();
+});
+
+
+$('#auth-btn').click( function(event) {
+  console.log("click auth");
+  user.logInGoogle()
+    .then( (result) => {
+      console.log("result from login", result.user.uid);
+      user.setUser(result.user.uid);
+      $('#auth-btn').addClass('is-hidden');
+      $('#logout').removeClass('is-hidden');
+      loadSongsToDOM();
+    });
+});
+
+$('#logout').click( function() {
+  user.logOut()
+    .then( (result) => {
+      console.log("result from login", result.user.uid);
+      $('#logOut').addClass('is-hidden');
+      $('#auth-btn').removeClass('is-hidden');
+      $('#uiContainer--wrapper').html('');
+      loadSongsToDOM();
+    });
 });
 
 
 // Helper functions for forms stuff. Nothing related to Firebase
 // Build a song obj from form data.
-function buildSongObj() {
+let buildSongObj = () => {
     let songObj = {
     title: $("#form--title").val(),
     artist: $("#form--artist").val(),
     album: $("#form--album").val(),
-    year: $("#form--year").val()
+    year: $("#form--year").val(),
+    uid: user.getUser()
   };
   return songObj;
-}
+};
 
 // Load the new song form
 $("#add-song").click(function() {

@@ -1,7 +1,7 @@
 "use strict";
 
 let firebase = require("firebase/app"),
-    fb = require("./fb-getter"),
+    fb = require("./fb-getter.js"),
     fbData = fb();
 
 require("firebase/auth");

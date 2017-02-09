@@ -3,23 +3,21 @@
 // It is only concerned with getting and setting data in the db
 
 let $ = require('jquery'),
-    firebase = require("./firebaseConfig");
+    firebase = require("./firebaseConfig.js");
 
 // ****************************************
 // DB interaction using Firebase REST API
 // ****************************************
 
-function getSongs(callback) {
+let getSongs = (user) => {
 	return new Promise((resolve, reject) => {
-		$.ajax({
-			url: 'https://music-history-2905b.firebaseio.com/songs.json'
-		}).done(function(songData) {
-			resolve(songData);
-		});
+		$.ajax({url: `https://music-history-2905b.firebaseio.com/songs.json?orderBy="uid"&equalTo="${user}"`})
+			.done((songData) => resolve(songData))
+			.fail((error) => reject(error));
 	});
-}
+};
 
-function addSong(songFormObj) {
+let addSong = (songFormObj) => {
 	console.log("addSong: ", songFormObj);
 	return new Promise((resolve, reject) => {
 		$.ajax({
@@ -27,11 +25,11 @@ function addSong(songFormObj) {
 			type: 'POST',
 			data: JSON.stringify(songFormObj),
 			dataType: 'json'
-		}).done( function(songId) {
+		}).done((songId) => {
 			resolve(songId);
 		});
 	});
-}
+};
 // POST - Submits data to be processed to a specified resource. Takes one parameter.
 
 function deleteSong(songId) {
@@ -39,9 +37,7 @@ function deleteSong(songId) {
 		$.ajax({
 			url: `https://music-history-2905b.firebaseio.com/songs/${songId}.json`,
 			method: 'DELETE'
-		}).done( function() {
-			resolve();
-		});
+		}).done(() => resolve());
 	});
 }
 
@@ -56,7 +52,7 @@ function getSong(songId) {
 
 // GET - Requests/read data from a specified resource
 // PUT - Update data to a specified resource. Takes two parameters.
-function editSong(songFormObj, songId) {
+let editSong = (songFormObj, songId) => {
 	return new Promise((resolve, reject) => {
 		$.ajax({
 			url: `https://music-history-2905b.firebaseio.com/songs/${songId}.json`,
@@ -64,7 +60,7 @@ function editSong(songFormObj, songId) {
 			data: JSON.stringify(songFormObj)
 		}).done((data) => {return resolve(data);});
 	});
-}
+};
 
 module.exports = {
   getSongs,
